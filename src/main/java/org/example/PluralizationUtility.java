@@ -10,27 +10,27 @@ import com.google.common.collect.ImmutableSet;
 
 public class PluralizationUtility {
 
-    private static final Set<String> UNPLURALIZABLES = ImmutableSet.of(
-            "accommodation", "advice", "alms", "aircraft", "aluminum",
-            "bison", "binoculars", "bourgeois", "breadfruit", "cannons", "caribou",
-            "cattle", "chassis", "chinos", "clippers", "clothing", "cod",
-            "corps", "crossroads", "deer", "dice", "doldrums", "dungarees",
-            "elks", "eyeglasses", "fish", "flares", "flours", "food", "fruits",
-            "furniture", "gallows", "goldfish", "grapefruit", "greenfly", "grouses",
-            "haddock", "halibuts", "head", "headquarters", "helps", "homework",
-            "hovercrafts", "ides", "insignias", "jeans", "knickers", "knowledge",
-            "kudos", "leggings", "lego", "legos", "luggage", "moose", "monkfish",
-            "mullet", "news", "offspring", "oxygen", "pants", "pyjamas", "pliers",
-            "police", "premises", "reindeer", "rendezvous", "salmon", "scissors",
-            "shambles", "barracks", "sheep", "shellfish", "shorts", "shrimp",
-            "smithereens", "spacecraft", "squid", "starfruit", "stones", "sugars",
-            "swine", "tongs", "trousers", "trout", "tuna", "tweezers", "you",
-            "wheat", "whitebait", "equipment", "information", "rice", "money",
-            "species", "series", "interests", "services", "ems", "rental plates",
-            "building materials", "confectionery accessories", "music instruments"
+    private final Set<String> UNPLURALIZABLES = ImmutableSet.of(
+            "accommodation", "advice", "alms", "aircraft", "aluminum", "bison",
+            "binoculars", "bourgeois", "breadfruit", "cannons", "caribou", "cattle",
+            "chassis", "chinos", "clippers", "clothing", "cod", "related", "corps",
+            "crossroads", "deer", "dice", "doldrums", "dungarees", "elks", "eyeglasses",
+            "fish", "flares", "flours", "food", "fruits", "furniture", "gallows",
+            "goldfish", "grapefruit", "greenfly", "grouses", "haddock", "halibuts",
+            "head", "headquarters", "helps", "homework", "hovercrafts", "ides",
+            "insignias", "jeans", "knickers", "knowledge", "kudos", "leggings", "lego",
+            "legos", "luggage", "moose", "monkfish", "mullet", "news", "offspring",
+            "oxygen", "pants", "pyjamas", "pliers", "police", "premises", "reindeer",
+            "rendezvous", "salmon", "scissors", "shambles", "barracks", "sheep",
+            "shellfish", "shorts", "shrimp", "smithereens", "spacecraft", "squid",
+            "starfruit", "stones", "sugars", "swine", "tongs", "trousers", "trout",
+            "tuna", "tweezers", "you", "wheat", "whitebait", "equipment", "information",
+            "rice", "money", "species", "series", "interests", "services", "ems",
+            "plates", "materials", "accessories",
+            "instruments", "wc"
     );
 
-    private static final Map<Pattern, String> PLURAL_RULES = new HashMap<>() {{
+    private final Map<Pattern, String> PLURAL_RULES = new HashMap<>() {{
         put(Pattern.compile("(.*cafe)$"), "$1s");
         put(Pattern.compile("(.+ffe?)$"), "$1s");
         put(Pattern.compile("(.*)fe?$"), "$1ves");
@@ -43,7 +43,7 @@ public class PluralizationUtility {
         put(Pattern.compile("(.+(s|x|sh|ch))(?<!is)$"), "$1es");
     }};
 
-    private static final Map<String, String> EXCEPTIONS = new HashMap<>() {{
+    private final Map<String, String> EXCEPTIONS = new HashMap<>() {{
         put("mouse", "mice");
         put("louse", "lice");
         put("die", "dice");
@@ -72,30 +72,33 @@ public class PluralizationUtility {
         put("narcissus", "narcissi");
     }};
 
-    private final Map<String, String> inMemoryPlurals = new HashMap<>();
+    Map<String, String> inMemoryPlurals = new HashMap<>();
 
     public String pluralize(String word) {
         String key = formatKey(word);
         if (inMemoryPlurals.containsKey(key)) {
             return inMemoryPlurals.get(key);
         }
-        return cacheAndReturn(key, applyPluralizationRules(key));
+        String pluralizedWord = applyPluralizationRules(key);
+        return cacheAndReturn(key, pluralizedWord);
     }
 
-    private String formatKey(String word) {
+    String formatKey(String word) {
         return word.toLowerCase().replace('_', ' ');
     }
 
-    private String applyPluralizationRules(String key) {
-        String[] parts = splitParts(key);
+    String applyPluralizationRules(String key) {
+        String[] parts = splitKeyIntoParts(key);
         String baseWord = parts[0];
         String secondPart = parts[1];
 
-        if (UNPLURALIZABLES.contains(baseWord)) {
+        String lastWord = getLastWord(baseWord);
+
+        if (UNPLURALIZABLES.contains(lastWord)) {
             return baseWord + secondPart;
         }
-        if (EXCEPTIONS.containsKey(baseWord)) {
-            return EXCEPTIONS.get(baseWord) + secondPart;
+        if (EXCEPTIONS.containsKey(lastWord)) {
+            return EXCEPTIONS.get(lastWord) + secondPart;
         }
         for (Map.Entry<Pattern, String> entry : PLURAL_RULES.entrySet()) {
             Matcher matcher = entry.getKey().matcher(baseWord);
@@ -106,15 +109,20 @@ public class PluralizationUtility {
         return baseWord + "s" + secondPart; // DEFAULT_RULE
     }
 
-    private String[] splitParts(String key) {
+    String[] splitKeyIntoParts(String key) {
         String[] parts = key.split(" of ", 2);
         String secondPart = (parts.length > 1) ? " of " + parts[1] : "";
         return new String[]{parts[0], secondPart};
     }
 
-    private String cacheAndReturn(String key, String result) {
-        result = result.replace(' ', '_');
-        inMemoryPlurals.put(key, result);
-        return result;
+    String getLastWord(String phrase) {
+        String[] words = phrase.split(" ");
+        return words[words.length - 1];
+    }
+
+    String cacheAndReturn(String key, String result) {
+        String formattedResult = result.replace(' ', '_');
+        inMemoryPlurals.put(key, formattedResult);
+        return formattedResult;
     }
 }
