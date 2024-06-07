@@ -40,21 +40,10 @@ public class PluralizationUtility {
         put(Pattern.compile("(.+[^aeiou])y$"), "$1ies");
         put(Pattern.compile("(.+z)$"), "$1zes");
         put(Pattern.compile("(.+)([ei])x$"), "$1ices");
-        put(Pattern.compile("(.+(s|x|sh|ch))(?<!is|us)$"), "$1es");
-        put(Pattern.compile("(.+)us$"), "$1i");
+        put(Pattern.compile("(.+(s|x|sh|ch))(?<!is)$"), "$1es");
     }};
 
     private static final Map<String, String> EXCEPTIONS = new HashMap<>() {{
-        put("bus", "buses");
-        put("status", "statuses");
-        put("apparatus", "apparatuses");
-        put("campus", "campuses");
-        put("census", "censuses");
-        put("prospectus", "prospectuses");
-        put("impetus", "impetuses");
-        put("consensus", "consensuses");
-        put("sinus", "sinuses");
-        put("bonus", "bonuses");
         put("mouse", "mice");
         put("louse", "lice");
         put("die", "dice");
@@ -72,6 +61,15 @@ public class PluralizationUtility {
         put("memorandum", "memoranda");
         put("bacterium", "bacteria");
         put("stratum", "strata");
+        put("stimulus", "stimuli");
+        put("focus", "foci");
+        put("radius", "radii");
+        put("locus", "loci");
+        put("fungus", "fungi");
+        put("nucleus", "nuclei");
+        put("terminus", "termini");
+        put("bacillus", "bacilli");
+        put("narcissus", "narcissi");
     }};
 
     private final Map<String, String> inMemoryPlurals = new HashMap<>();
