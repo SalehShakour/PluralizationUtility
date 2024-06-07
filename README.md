@@ -9,5 +9,5 @@ PluralizationUtility is a Java library for pluralizing English nouns. It handles
 * **Identifies Unpluralizable Words:** Recognizes words that do not have plural forms (e.g., "information," "advice").
 * **Applies Standard Rules:** Implements standard pluralization rules for regular nouns (e.g., adding "-s" or "-es").
 * **In-Memory Caching:** Stores previously calculated plurals for improved performance.
-* 
+  
 **Important:** Input words should be in their singular form.
