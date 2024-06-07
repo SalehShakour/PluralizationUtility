@@ -1,16 +1,15 @@
 package org.example;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.collect.ImmutableSet;
-
 public class PluralizationUtility {
 
-    private final Set<String> UNPLURALIZABLES = ImmutableSet.of(
+    Set<String> UNPLURALIZABLES = new HashSet<>(Set.of(
             "accommodation", "advice", "alms", "aircraft", "aluminum", "bison",
             "binoculars", "bourgeois", "breadfruit", "cannons", "caribou", "cattle",
             "chassis", "chinos", "clippers", "clothing", "cod", "related", "corps",
@@ -26,14 +25,12 @@ public class PluralizationUtility {
             "starfruit", "stones", "sugars", "swine", "tongs", "trousers", "trout",
             "tuna", "tweezers", "you", "wheat", "whitebait", "equipment", "information",
             "rice", "money", "species", "series", "interests", "services", "ems",
-            "plates", "materials", "accessories",
-            "instruments", "wc"
-    );
+            "plates", "materials", "accessories", "instruments", "wc"
+    ));
 
-    private final Map<Pattern, String> PLURAL_RULES = new HashMap<>() {{
-        put(Pattern.compile("(.*cafe)$"), "$1s");
+    Map<Pattern, String> PLURAL_RULES = new HashMap<>() {{
         put(Pattern.compile("(.+ffe?)$"), "$1s");
-        put(Pattern.compile("(.*)fe?$"), "$1ves");
+        put(Pattern.compile("(.*)(?<!ffe?)fe?$"), "$1ves");
         put(Pattern.compile("(.*)man$"), "$1men");
         put(Pattern.compile("(.*)is$"), "$1es");
         put(Pattern.compile("(.+[aeiou]y)$"), "$1s");
@@ -43,7 +40,8 @@ public class PluralizationUtility {
         put(Pattern.compile("(.+(s|x|sh|ch))(?<!is)$"), "$1es");
     }};
 
-    private final Map<String, String> EXCEPTIONS = new HashMap<>() {{
+    Map<String, String> EXCEPTIONS = new HashMap<>() {{
+        put("cafe", "cafes");
         put("mouse", "mice");
         put("louse", "lice");
         put("die", "dice");
@@ -92,13 +90,15 @@ public class PluralizationUtility {
         String baseWord = parts[0];
         String secondPart = parts[1];
 
-        String lastWord = getLastWord(baseWord);
+        String[] separatedBaseWord = getBaseWithoutLastAndLastWord(baseWord);
+        String baseWithoutLast = separatedBaseWord[0];
+        String lastWord = separatedBaseWord[1];
 
         if (UNPLURALIZABLES.contains(lastWord)) {
             return baseWord + secondPart;
         }
         if (EXCEPTIONS.containsKey(lastWord)) {
-            return EXCEPTIONS.get(lastWord) + secondPart;
+            return baseWithoutLast + " " + EXCEPTIONS.get(lastWord) + secondPart;
         }
         for (Map.Entry<Pattern, String> entry : PLURAL_RULES.entrySet()) {
             Matcher matcher = entry.getKey().matcher(baseWord);
@@ -106,7 +106,7 @@ public class PluralizationUtility {
                 return matcher.replaceFirst(entry.getValue()) + secondPart;
             }
         }
-        return baseWord + "s" + secondPart; // DEFAULT_RULE
+        return baseWord + "s" + secondPart;
     }
 
     String[] splitKeyIntoParts(String key) {
@@ -115,9 +115,11 @@ public class PluralizationUtility {
         return new String[]{parts[0], secondPart};
     }
 
-    String getLastWord(String phrase) {
-        String[] words = phrase.split(" ");
-        return words[words.length - 1];
+    private String[] getBaseWithoutLastAndLastWord(String phrase) {
+        int lastSpaceIndex = phrase.lastIndexOf(' ');
+        String lastWord = (lastSpaceIndex == -1) ? phrase : phrase.substring(lastSpaceIndex + 1);
+        String baseWithoutLast = (lastSpaceIndex == -1) ? phrase : phrase.substring(0, lastSpaceIndex);
+        return new String[]{baseWithoutLast, lastWord};
     }
 
     String cacheAndReturn(String key, String result) {
